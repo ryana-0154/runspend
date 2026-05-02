@@ -3,6 +3,18 @@ packages:
   - "packages/*"
   - "workers/*"
 
-ignoredBuiltDependencies:
-  - sharp
-  - unrs-resolver
+# Supply chain hardening — see https://pnpm.io/supply-chain-security
+# Block postinstall scripts by default. Add a package here only after
+# auditing what its build script does.
+onlyBuiltDependencies: []
+
+# Refuse transitive deps that pull from git repos or arbitrary tarball URLs.
+blockExoticSubdeps: true
+
+# Cooldown before installing freshly published versions (minutes).
+# 1440 = 1 day — gives the ecosystem time to flag malicious releases.
+minimumReleaseAge: 1440
+
+# Refuse to install a package whose publisher trust level has decreased
+# (e.g. lost npm provenance / publisher signature).
+trustPolicy: no-downgrade

@@ -78,6 +78,16 @@ Guidance for Claude Code working in this repo. Read this before making changes.
 - If a task seems to expand scope beyond v1, **flag it and ask** rather than building.
 - If you find yourself writing the same logic in two places, stop and extract to `packages/shared` or the relevant domain package.
 
+## Package management
+
+- **pnpm only** — never run `npm install` or `yarn` against this repo. The lockfile is `pnpm-lock.yaml`.
+- Supply chain hardening lives in `pnpm-workspace.yaml` per <https://pnpm.io/supply-chain-security>. Don't disable these without a written reason in the PR:
+  - `onlyBuiltDependencies: []` — postinstall scripts blocked by default. To enable a build script, add the package name here after auditing what its script does.
+  - `blockExoticSubdeps: true` — transitive deps cannot resolve from git or arbitrary tarballs.
+  - `minimumReleaseAge: 1440` — packages must be ≥ 1 day old before they can be installed. If a release blocks you, justify in the PR rather than lowering the threshold.
+  - `trustPolicy: no-downgrade` — refuses installs where a publisher's trust level has dropped (e.g. lost provenance).
+- Always commit `pnpm-lock.yaml` changes with the PR that caused them.
+
 ## Useful scripts
 
 ```
