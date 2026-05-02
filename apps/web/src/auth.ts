@@ -25,6 +25,7 @@ function readGithubProfile(profile: unknown): {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   providers: [
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID,
