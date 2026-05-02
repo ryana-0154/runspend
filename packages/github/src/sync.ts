@@ -20,10 +20,13 @@ export async function upsertOrgFromInstallation(
   const { installation, trialDays = 14 } = input;
   const trialEndsAt = new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000);
 
+  // Key on github_org_id, not installation_id: an org keeps the same org_id
+  // across uninstall→reinstall cycles, but its installation_id changes.
+  // We never want to insert a second row for the same org.
   const [existing] = await db
     .select()
     .from(organizations)
-    .where(eq(organizations.installationId, installation.id))
+    .where(eq(organizations.githubOrgId, installation.account.id))
     .limit(1);
 
   if (!existing) {
@@ -44,10 +47,10 @@ export async function upsertOrgFromInstallation(
   const [updated] = await db
     .update(organizations)
     .set({
-      githubOrgId: installation.account.id,
       githubLogin: installation.account.login,
+      installationId: installation.id,
     })
-    .where(eq(organizations.installationId, installation.id))
+    .where(eq(organizations.id, existing.id))
     .returning();
   if (!updated) throw new Error("upsertOrgFromInstallation: update returned no row");
   return updated;
