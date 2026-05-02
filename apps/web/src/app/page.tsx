@@ -44,7 +44,9 @@ function SiteHeader() {
         <Logo />
         <span className="text-base font-semibold tracking-tight">
           <span className="text-foreground">Run</span>
-          <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">Spend</span>
+          <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+            Spend
+          </span>
         </span>
       </Link>
       <nav className="hidden items-center gap-7 text-sm text-muted-foreground sm:flex">
@@ -54,10 +56,7 @@ function SiteHeader() {
         <a href="#how" className="transition-colors hover:text-foreground">
           How it works
         </a>
-        <a
-          href="https://github.com"
-          className="transition-colors hover:text-foreground"
-        >
+        <a href="https://github.com" className="transition-colors hover:text-foreground">
           GitHub
         </a>
       </nav>
@@ -97,9 +96,8 @@ function Hero() {
       </h1>
 
       <p className="mt-6 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
-        Per-workflow, per-repo, per-branch cost analytics. Connect once and get
-        the breakdown your CI bill never gives you — without exposing a single
-        log line.
+        Per-workflow, per-repo, per-branch cost analytics. Connect once and get the breakdown your
+        CI bill never gives you — without exposing a single log line.
       </p>
 
       <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row">
@@ -131,7 +129,13 @@ function HeroPreview() {
   const rows = [
     { repo: "api/server", workflow: "ci.yml", minutes: 4_812, cost: "$192.48", trend: "+12%" },
     { repo: "web/app", workflow: "deploy.yml", minutes: 2_140, cost: "$85.60", trend: "-4%" },
-    { repo: "infra/terraform", workflow: "plan.yml", minutes: 1_303, cost: "$52.12", trend: "+38%" },
+    {
+      repo: "infra/terraform",
+      workflow: "plan.yml",
+      minutes: 1_303,
+      cost: "$52.12",
+      trend: "+38%",
+    },
     { repo: "data/etl", workflow: "nightly.yml", minutes: 980, cost: "$39.20", trend: "+1%" },
   ];
 
@@ -145,10 +149,7 @@ function HeroPreview() {
               <span className="size-2.5 rounded-full bg-amber-400/70" />
               <span className="size-2.5 rounded-full bg-emerald-400/70" />
             </div>
-            <div className="font-mono text-xs text-muted-foreground">
-              runspend.app/dashboard
-
-            </div>
+            <div className="font-mono text-xs text-muted-foreground">runspend.app/dashboard</div>
             <div className="w-12" />
           </div>
 
@@ -172,7 +173,9 @@ function HeroPreview() {
                 className="grid grid-cols-12 items-center gap-2 border-t border-border/60 px-5 py-3 text-sm"
               >
                 <div className="col-span-4 truncate font-mono text-foreground">{r.repo}</div>
-                <div className="col-span-3 truncate font-mono text-muted-foreground">{r.workflow}</div>
+                <div className="col-span-3 truncate font-mono text-muted-foreground">
+                  {r.workflow}
+                </div>
                 <div className="col-span-2 text-right tabular-nums text-muted-foreground">
                   {r.minutes.toLocaleString()}
                 </div>
@@ -265,8 +268,7 @@ function FeatureGrid() {
           The CI bill, finally explained.
         </h2>
         <p className="mt-4 text-base text-muted-foreground">
-          A focused analytics layer over your GitHub Actions usage. Nothing more,
-          nothing less.
+          A focused analytics layer over your GitHub Actions usage. Nothing more, nothing less.
         </p>
       </div>
 
@@ -300,8 +302,8 @@ function CallToAction() {
           Ship faster. Spend less. Know exactly why.
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground">
-          Connect your GitHub org and get a real cost breakdown in minutes.
-          Cancel any time — your data is yours.
+          Connect your GitHub org and get a real cost breakdown in minutes. Cancel any time — your
+          data is yours.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
@@ -331,18 +333,20 @@ function SiteFooter() {
           <Logo />
           <span className="font-medium">
             <span className="text-foreground">Run</span>
-            <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">Spend</span>
+            <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+              Spend
+            </span>
           </span>
           <span className="text-muted-foreground">© {new Date().getFullYear()}</span>
         </div>
         <div className="flex items-center gap-6">
-          <a href="#" className="transition-colors hover:text-foreground">
+          <a href="/privacy" className="transition-colors hover:text-foreground">
             Privacy
           </a>
-          <a href="#" className="transition-colors hover:text-foreground">
+          <a href="/terms" className="transition-colors hover:text-foreground">
             Terms
           </a>
-          <a href="#" className="transition-colors hover:text-foreground">
+          <a href="/status" className="transition-colors hover:text-foreground">
             Status
           </a>
         </div>
@@ -357,6 +361,7 @@ function Logo({ className = "" }: { className?: string }) {
       className={`flex size-7 items-center justify-center rounded-md bg-gradient-to-br from-violet-600 to-indigo-600 text-background shadow-sm ${className}`}
     >
       <svg viewBox="0 0 24 24" fill="none" className="size-4" aria-hidden>
+        <title>icon</title>
         <path
           d="M4 17l5-5 4 4 7-9"
           stroke="currentColor"
@@ -374,6 +379,7 @@ type IconProps = { className?: string };
 function ArrowRight({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <title>icon</title>
       <path
         d="M5 12h14M13 6l6 6-6 6"
         stroke="currentColor"
@@ -388,7 +394,13 @@ function ArrowRight({ className }: IconProps) {
 function Bars({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
-      <path d="M5 20V10M12 20V4M19 20v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <title>icon</title>
+      <path
+        d="M5 20V10M12 20V4M19 20v-7"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -396,6 +408,7 @@ function Bars({ className }: IconProps) {
 function Server({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <title>icon</title>
       <rect x="3" y="4" width="18" height="7" rx="2" stroke="currentColor" strokeWidth="2" />
       <rect x="3" y="13" width="18" height="7" rx="2" stroke="currentColor" strokeWidth="2" />
       <path d="M7 7.5h.01M7 16.5h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -406,6 +419,7 @@ function Server({ className }: IconProps) {
 function Shield({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <title>icon</title>
       <path
         d="M12 3l8 3v6c0 4.5-3.2 8.4-8 9-4.8-.6-8-4.5-8-9V6l8-3z"
         stroke="currentColor"
@@ -419,6 +433,7 @@ function Shield({ className }: IconProps) {
 function Bolt({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <title>icon</title>
       <path
         d="M13 3L4 14h7l-1 7 9-11h-7l1-7z"
         stroke="currentColor"
@@ -432,6 +447,7 @@ function Bolt({ className }: IconProps) {
 function Refresh({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <title>icon</title>
       <path
         d="M4 12a8 8 0 0114-5.3L20 8M20 4v4h-4M20 12a8 8 0 01-14 5.3L4 16M4 20v-4h4"
         stroke="currentColor"
@@ -446,6 +462,7 @@ function Refresh({ className }: IconProps) {
 function Users({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <title>icon</title>
       <circle cx="9" cy="9" r="3.5" stroke="currentColor" strokeWidth="2" />
       <path
         d="M2.5 20a6.5 6.5 0 0113 0M16 11a3 3 0 100-6M22 20a5 5 0 00-7-4.6"

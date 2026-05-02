@@ -21,6 +21,7 @@ export default async function DashboardPage() {
           <Link href="/" className="flex items-center gap-2">
             <span className="flex size-7 items-center justify-center rounded-md bg-gradient-to-br from-violet-600 to-indigo-600 text-background shadow-sm">
               <svg viewBox="0 0 24 24" fill="none" className="size-4" aria-hidden>
+                <title>icon</title>
                 <path
                   d="M4 17l5-5 4 4 7-9"
                   stroke="currentColor"
@@ -32,7 +33,9 @@ export default async function DashboardPage() {
             </span>
             <span className="text-sm font-semibold tracking-tight">
               <span className="text-foreground">Run</span>
-              <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">Spend</span>
+              <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+                Spend
+              </span>
             </span>
           </Link>
 
@@ -44,9 +47,7 @@ export default async function DashboardPage() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <span className="hidden text-sm text-muted-foreground sm:inline">
-              {email}
-            </span>
+            <span className="hidden text-sm text-muted-foreground sm:inline">{email}</span>
             <span className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 text-sm font-semibold text-white shadow-sm">
               {initial}
             </span>
@@ -83,9 +84,7 @@ export default async function DashboardPage() {
             <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               Connected organizations
             </h2>
-            <span className="text-xs text-muted-foreground">
-              {orgs.length} total
-            </span>
+            <span className="text-xs text-muted-foreground">{orgs.length} total</span>
           </div>
 
           <ul className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
@@ -128,12 +127,10 @@ export default async function DashboardPage() {
             <div className="mx-auto flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
               <ChartIcon className="size-5" />
             </div>
-            <h3 className="mt-4 text-base font-semibold tracking-tight">
-              No data yet
-            </h3>
+            <h3 className="mt-4 text-base font-semibold tracking-tight">No data yet</h3>
             <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted-foreground">
-              We&apos;ll start ingesting workflow runs as soon as your first
-              webhook arrives. This usually takes less than a minute.
+              We&apos;ll start ingesting workflow runs as soon as your first webhook arrives. This
+              usually takes less than a minute.
             </p>
           </div>
         </section>
@@ -146,9 +143,7 @@ function NavTab({ label, active }: { label: string; active?: boolean }) {
   return (
     <span
       className={`inline-flex h-8 items-center rounded-md px-3 text-sm font-medium transition-colors ${
-        active
-          ? "bg-muted text-foreground"
-          : "text-muted-foreground hover:text-foreground"
+        active ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"
       }`}
     >
       {label}
@@ -156,23 +151,13 @@ function NavTab({ label, active }: { label: string; active?: boolean }) {
   );
 }
 
-function StatCard({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string;
-  hint: string;
-}) {
+function StatCard({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
     <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
       <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
         {label}
       </div>
-      <div className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">
-        {value}
-      </div>
+      <div className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">{value}</div>
       <div className="mt-1 text-xs text-muted-foreground">{hint}</div>
     </div>
   );
@@ -181,12 +166,8 @@ function StatCard({
 function PlusIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
-      <path
-        d="M12 5v14M5 12h14"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
+      <title>icon</title>
+      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -194,6 +175,7 @@ function PlusIcon({ className }: { className?: string }) {
 function ChartIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <title>icon</title>
       <path
         d="M4 20V10M10 20V4M16 20v-7M22 20H2"
         stroke="currentColor"
