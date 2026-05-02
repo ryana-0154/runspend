@@ -16,6 +16,8 @@ const schema = z.object({
   GITHUB_APP_WEBHOOK_SECRET: z.string().optional(),
   GITHUB_APP_CLIENT_ID: z.string().optional(),
   GITHUB_APP_CLIENT_SECRET: z.string().optional(),
+  // URL slug used to build the install link `https://github.com/apps/<slug>/installations/new`
+  GITHUB_APP_SLUG: z.string().optional(),
 
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),

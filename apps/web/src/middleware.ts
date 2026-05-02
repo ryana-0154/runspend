@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
 const PUBLIC_PATHS = new Set<string>(["/", "/login", "/api/health"]);
-const PUBLIC_PREFIXES = ["/api/auth/"];
+// Webhooks are signature-verified, not session-authed; install callback
+// must remain reachable for GitHub's redirect even mid-session.
+const PUBLIC_PREFIXES = ["/api/auth/", "/api/webhooks/"];
 
 function isPublic(pathname: string): boolean {
   if (PUBLIC_PATHS.has(pathname)) return true;
