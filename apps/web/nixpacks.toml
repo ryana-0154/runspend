@@ -1,0 +1,21 @@
+# Nixpacks build plan for the `web` Railway service.
+# Railway points at the repo root; we build the whole workspace and `next build`
+# the web app. Migrations are NOT run at build time — they happen in the
+# `startCommand` (see apps/web/railway.json) so they hit the live database.
+
+providers = ["node"]
+
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+
+[phases.install]
+# Corepack honors the `packageManager` field in the root package.json, pinning
+# pnpm to the version the repo committed against.
+cmds = [
+  "corepack enable",
+  "corepack prepare --activate",
+  "pnpm install --frozen-lockfile",
+]
+
+[phases.build]
+cmds = ["pnpm --filter @runspend/web build"]
