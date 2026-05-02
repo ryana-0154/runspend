@@ -1,6 +1,6 @@
 import { type Database, organizations, orgMemberships, repositories } from "@runspend/db";
 import { eq, inArray } from "drizzle-orm";
-import type { GithubInstallation, GithubRepositoryRef } from "./installation.js";
+import type { GithubInstallation, GithubRepositoryRef } from "./installation";
 
 export interface UpsertOrgFromInstallationInput {
   installation: GithubInstallation;

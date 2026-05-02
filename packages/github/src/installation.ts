@@ -1,5 +1,5 @@
 import type { Octokit } from "@octokit/core";
-import { type GithubAppConfig, getInstallationOctokit } from "./app.js";
+import { type GithubAppConfig, getInstallationOctokit } from "./app";
 
 export interface GithubInstallationAccount {
   id: bigint;

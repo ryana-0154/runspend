@@ -1,25 +1,25 @@
-export type { GithubAppConfig } from "./app.js";
-export { getApp, getInstallationOctokit } from "./app.js";
+export type { GithubAppConfig } from "./app";
+export { getApp, getInstallationOctokit } from "./app";
 export type {
   GithubInstallation,
   GithubInstallationAccount,
   GithubRepositoryRef,
-} from "./installation.js";
+} from "./installation";
 export {
   fetchInstallation,
   listInstallationRepositories,
   readAccount,
   readRepo,
   userCanSeeInstallation,
-} from "./installation.js";
+} from "./installation";
 export type {
   LinkUserAsOwnerInput,
   SyncRepositoriesInput,
   UpsertOrgFromInstallationInput,
-} from "./sync.js";
+} from "./sync";
 export {
   linkUserAsOwner,
   syncRepositories,
   upsertOrgFromInstallation,
-} from "./sync.js";
-export { verifyWebhookSignature } from "./webhook.js";
+} from "./sync";
+export { verifyWebhookSignature } from "./webhook";
