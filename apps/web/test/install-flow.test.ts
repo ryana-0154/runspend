@@ -285,7 +285,108 @@ describeIfDb("GitHub webhook handler", () => {
     const result = await handleWebhook(db, "ping", {});
     expect(result.kind).toBe("ignored");
   });
+
+  it("workflow_run.completed enqueues a run-ingest job", async () => {
+    // Set up an active org+repo to receive the webhook.
+    const installation = makeInstallation({ id: 777_111n });
+    installation.account.id = 777_222n;
+    await handleWebhook(db, "installation", {
+      action: "created",
+      installation: {
+        id: Number(installation.id),
+        account: {
+          id: Number(installation.account.id),
+          login: "wfrun-org",
+          type: "Organization",
+        },
+      },
+      repositories: [
+        {
+          id: 88_881,
+          name: "wfrun-repo",
+          full_name: "wfrun-org/wfrun-repo",
+          default_branch: "main",
+          private: false,
+        },
+      ],
+    });
+
+    const calls: Array<{ orgId: string; repoId: string; githubRunId: string }> = [];
+    const enqueueRunIngest = async (p: { orgId: string; repoId: string; githubRunId: string }) => {
+      calls.push(p);
+    };
+
+    const result = await handleWebhook(
+      db,
+      "workflow_run",
+      {
+        action: "completed",
+        workflow_run: { id: 12_345_678 },
+        repository: { id: 88_881 },
+        installation: { id: Number(installation.id), account: payloadAccount(installation) },
+      },
+      { enqueueRunIngest },
+    );
+
+    expect(result).toMatchObject({ kind: "workflow_run", action: "completed", enqueued: true });
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.githubRunId).toBe("12345678");
+
+    const [stored] = await db
+      .select()
+      .from(repositories)
+      .where(eq(repositories.githubRepoId, 88_881n));
+    expect(calls[0]?.repoId).toBe(stored?.id);
+    expect(calls[0]?.orgId).toBe(stored?.orgId);
+  });
+
+  it("workflow_run with non-completed action is a no-op", async () => {
+    const calls: Array<unknown> = [];
+    const result = await handleWebhook(
+      db,
+      "workflow_run",
+      {
+        action: "in_progress",
+        workflow_run: { id: 1 },
+        repository: { id: 88_881 },
+      },
+      { enqueueRunIngest: async (p) => void calls.push(p) },
+    );
+    expect(result).toEqual({
+      kind: "workflow_run",
+      action: "in_progress",
+      enqueued: false,
+      reason: "non-completed",
+    });
+    expect(calls).toHaveLength(0);
+  });
+
+  it("workflow_run for an unknown repo is ignored without throwing", async () => {
+    const result = await handleWebhook(
+      db,
+      "workflow_run",
+      {
+        action: "completed",
+        workflow_run: { id: 1 },
+        repository: { id: 999_999_999 },
+      },
+      { enqueueRunIngest: async () => {} },
+    );
+    expect(result).toMatchObject({
+      kind: "workflow_run",
+      enqueued: false,
+      reason: "unknown-repo",
+    });
+  });
 });
+
+function payloadAccount(inst: GithubInstallation) {
+  return {
+    id: Number(inst.account.id),
+    login: inst.account.login,
+    type: inst.account.type,
+  };
+}
 
 if (!baseUrl) {
   describe.skip("install flow (TEST_DATABASE_URL unset)", () => {

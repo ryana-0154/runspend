@@ -1,4 +1,4 @@
-import { type Database, organizations } from "@runspend/db";
+import { type Database, organizations, repositories as repositoriesTable } from "@runspend/db";
 import {
   type GithubInstallation,
   type GithubRepositoryRef,
@@ -7,6 +7,7 @@ import {
   syncRepositories,
   upsertOrgFromInstallation,
 } from "@runspend/github";
+import type { IngestRunPayload } from "@runspend/shared";
 import { eq } from "drizzle-orm";
 
 interface WebhookPayload {
@@ -15,6 +16,15 @@ interface WebhookPayload {
   repositories?: unknown;
   repositories_added?: unknown;
   repositories_removed?: unknown;
+  workflow_run?: unknown;
+  repository?: unknown;
+}
+
+export type EnqueueRunIngest = (payload: IngestRunPayload) => Promise<void>;
+
+export interface HandleWebhookDeps {
+  /** Optional — handler logs and skips when absent (used by integration tests). */
+  enqueueRunIngest?: EnqueueRunIngest;
 }
 
 function readInstallation(raw: unknown): GithubInstallation {
@@ -32,9 +42,17 @@ function readRepoArray(raw: unknown): GithubRepositoryRef[] {
   return raw.map(readRepo);
 }
 
+function readBigIntField(raw: unknown, field: string): bigint {
+  if (typeof raw !== "number" && typeof raw !== "string") {
+    throw new Error(`${field} invalid`);
+  }
+  return BigInt(raw);
+}
+
 export type WebhookHandlerResult =
   | { kind: "installation"; action: string; orgId?: string; repoCount?: number }
   | { kind: "installation_repositories"; orgId: string; added: number; removed: number }
+  | { kind: "workflow_run"; action: string; enqueued: boolean; reason?: string }
   | { kind: "ignored"; event: string };
 
 /**
@@ -46,6 +64,7 @@ export async function handleWebhook(
   db: Database,
   event: string,
   payload: WebhookPayload,
+  deps: HandleWebhookDeps = {},
 ): Promise<WebhookHandlerResult> {
   if (event === "installation") {
     const action = typeof payload.action === "string" ? payload.action : "unknown";
@@ -88,6 +107,56 @@ export async function handleWebhook(
       added: added.length,
       removed: removed.length,
     };
+  }
+
+  if (event === "workflow_run") {
+    const action = typeof payload.action === "string" ? payload.action : "unknown";
+    // Spec §4.3: only completed runs trigger ingest. `requested` and
+    // `in_progress` would just queue the same run multiple times — wasteful.
+    if (action !== "completed") {
+      return { kind: "workflow_run", action, enqueued: false, reason: "non-completed" };
+    }
+
+    const run = payload.workflow_run;
+    const repository = payload.repository;
+    if (!run || typeof run !== "object" || !repository || typeof repository !== "object") {
+      throw new Error("workflow_run payload missing run or repository");
+    }
+    const githubRunId = readBigIntField((run as Record<string, unknown>).id, "workflow_run.id");
+    const githubRepoId = readBigIntField(
+      (repository as Record<string, unknown>).id,
+      "repository.id",
+    );
+
+    const [repoRow] = await db
+      .select({
+        id: repositoriesTable.id,
+        orgId: repositoriesTable.orgId,
+        active: repositoriesTable.active,
+      })
+      .from(repositoriesTable)
+      .where(eq(repositoriesTable.githubRepoId, githubRepoId))
+      .limit(1);
+
+    if (!repoRow) {
+      // Webhook for a repo we don't have on file — likely arriving before
+      // the install snapshot, or a repo we've never seen. Don't error
+      // (would trigger GitHub's retry storm); ignore quietly.
+      return { kind: "workflow_run", action, enqueued: false, reason: "unknown-repo" };
+    }
+    if (!repoRow.active) {
+      return { kind: "workflow_run", action, enqueued: false, reason: "inactive-repo" };
+    }
+
+    if (deps.enqueueRunIngest) {
+      await deps.enqueueRunIngest({
+        orgId: repoRow.orgId,
+        repoId: repoRow.id,
+        githubRunId: githubRunId.toString(),
+      });
+      return { kind: "workflow_run", action, enqueued: true };
+    }
+    return { kind: "workflow_run", action, enqueued: false, reason: "no-enqueue-fn" };
   }
 
   return { kind: "ignored", event };
