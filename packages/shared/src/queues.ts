@@ -4,9 +4,9 @@
  * instances live in `workers/ingest/` — this module only defines the contract.
  */
 
-export const INGEST_RUN_QUEUE = "ingest:run";
-export const INGEST_INCREMENTAL_QUEUE = "ingest:incremental";
-export const INGEST_BACKFILL_QUEUE = "ingest:backfill";
+export const INGEST_RUN_QUEUE = "ingest-run";
+export const INGEST_INCREMENTAL_QUEUE = "ingest-incremental";
+export const INGEST_BACKFILL_QUEUE = "ingest-backfill";
 
 export type IngestQueueName =
   | typeof INGEST_RUN_QUEUE
