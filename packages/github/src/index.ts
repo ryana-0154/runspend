@@ -1,6 +1,19 @@
 export type { GithubAppConfig } from "./app";
 export { getApp, getInstallationOctokit } from "./app";
 export type {
+  IngestContext,
+  IngestRunsSincePayload,
+  IngestSingleRunPayload,
+} from "./ingest";
+export {
+  ingestIncremental,
+  ingestRun,
+  ingestRunsSince,
+  ingestSingleRun,
+  loadIngestContext,
+  upsertWorkflow,
+} from "./ingest";
+export type {
   GithubInstallation,
   GithubInstallationAccount,
   GithubRepositoryRef,
@@ -25,6 +38,22 @@ export {
   loadRunnerRates,
   sumRunCost,
 } from "./pricing";
+export type {
+  ParsedWorkflow,
+  ParsedWorkflowJob,
+  ParsedWorkflowRun,
+  RepoCoordinate,
+  RunnerOsClass,
+  WorkflowState,
+} from "./runs";
+export {
+  classifyRunner,
+  fetchRun,
+  fetchWorkflow,
+  getOctokitForInstallation,
+  listRunJobs,
+  listWorkflowRuns,
+} from "./runs";
 export type {
   LinkUserAsOwnerInput,
   SyncRepositoriesInput,
