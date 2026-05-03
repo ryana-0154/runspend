@@ -14,9 +14,3 @@ cmds = [
   "corepack prepare --activate",
   "pnpm install --frozen-lockfile",
 ]
-
-# Explicitly empty — without this, Nixpacks auto-detects a build phase from
-# the workspace layout and runs `pnpm --filter @runspend/ingest build`, which
-# fails because the worker has no build script (it runs via tsx at runtime).
-[phases.build]
-cmds = []
