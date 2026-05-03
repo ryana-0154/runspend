@@ -28,6 +28,8 @@ const schema = z.object({
   RESEND_API_KEY: z.string().optional(),
   SENTRY_DSN: z.string().optional(),
   ENCRYPTION_KEY: z.string().optional(),
+
+  RAILWAY_ENVIRONMENT_NAME: z.string().optional(),
 });
 
 export type Env = z.infer<typeof schema>;
