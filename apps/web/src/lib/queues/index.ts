@@ -85,3 +85,49 @@ export async function enqueueBackfill(payload: IngestBackfillPayload): Promise<v
     backoff: { type: "exponential", delay: 60_000 },
   });
 }
+
+const HOURLY_MS = 60 * 60_000;
+
+/**
+ * Register (or refresh) the per-repo hourly incremental poller. Uses
+ * `upsertJobScheduler` so calling this twice for the same repo is a no-op
+ * — the schedulerId acts as the dedupe key. Per spec §4.3, polls hourly.
+ */
+export async function registerIncrementalSchedule(
+  payload: IngestIncrementalPayload,
+): Promise<void> {
+  await incrementalQueue().upsertJobScheduler(
+    `incremental-sched:${payload.repoId}`,
+    { every: HOURLY_MS },
+    {
+      name: "ingest-incremental",
+      data: payload,
+      opts: {
+        removeOnComplete: 100,
+        removeOnFail: 500,
+        attempts: 3,
+        backoff: { type: "exponential", delay: 30_000 },
+      },
+    },
+  );
+}
+
+/** Stop polling a repo (e.g. plan-limit deactivation, install removed). */
+export async function unregisterIncrementalSchedule(repoId: string): Promise<void> {
+  await incrementalQueue().removeJobScheduler(`incremental-sched:${repoId}`);
+}
+
+/**
+ * Convenience: kick off ingest for a freshly activated repo. Enqueues a
+ * 30-day backfill and registers the hourly incremental poller. Idempotent
+ * on `repoId` so repeated calls (re-install, webhook replay) collapse.
+ */
+export async function kickoffRepoIngest(input: {
+  orgId: string;
+  repoId: string;
+  /** ISO-8601 lower bound; defaults to now - 30d (worker default). */
+  since?: string;
+}): Promise<void> {
+  await enqueueBackfill(input);
+  await registerIncrementalSchedule({ orgId: input.orgId, repoId: input.repoId });
+}

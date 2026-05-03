@@ -110,6 +110,38 @@ describeIfDb("GitHub App install flow", () => {
     expect(repoRows.every((r) => r.active)).toBe(true);
   });
 
+  it("calls kickoffRepoIngest once per active repo", async () => {
+    const user = await upsertUserFromGithub(db, {
+      githubUserId: 10003n,
+      email: "owner3@acme.example",
+      name: null,
+      avatarUrl: null,
+    });
+    const installation = makeInstallation({ id: 555_333n });
+    const repos = [makeRepo(7301n, "ki-a"), makeRepo(7302n, "ki-b")];
+    const calls: Array<{ orgId: string; repoId: string }> = [];
+
+    await completeInstall(
+      db,
+      fakeAppConfig,
+      { installationId: 555_333, userId: user.id },
+      {
+        fetchInstallation: async () => installation,
+        listRepos: async () => repos,
+        kickoffRepoIngest: async (p) => {
+          calls.push(p);
+        },
+      },
+    );
+
+    expect(calls).toHaveLength(2);
+    const [orgRow] = await db
+      .select()
+      .from(organizations)
+      .where(eq(organizations.installationId, 555_333n));
+    expect(calls.every((c) => c.orgId === orgRow?.id)).toBe(true);
+  });
+
   it("re-running install is idempotent (no duplicate org or membership)", async () => {
     const user = await upsertUserFromGithub(db, {
       githubUserId: 10002n,

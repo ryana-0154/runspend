@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { getGithubAppConfig } from "@/lib/github/app-config";
 import { completeInstall } from "@/lib/github/install-flow";
 import { INSTALL_STATE_COOKIE, verifyInstallState } from "@/lib/github/install-state";
+import { kickoffRepoIngest } from "@/lib/queues";
 
 function bad(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
@@ -44,10 +45,12 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const result = await completeInstall(getDb(), getGithubAppConfig(), {
-      installationId,
-      userId,
-    });
+    const result = await completeInstall(
+      getDb(),
+      getGithubAppConfig(),
+      { installationId, userId },
+      { kickoffRepoIngest },
+    );
     logger.info(
       { userId, installationId, orgId: result.org.id, repoCount: result.repoCount },
       "install callback: org connected",

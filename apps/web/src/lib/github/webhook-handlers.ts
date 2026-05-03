@@ -21,10 +21,16 @@ interface WebhookPayload {
 }
 
 export type EnqueueRunIngest = (payload: IngestRunPayload) => Promise<void>;
+export type KickoffRepoIngest = (input: { orgId: string; repoId: string }) => Promise<void>;
+export type UnregisterRepoIngest = (repoId: string) => Promise<void>;
 
 export interface HandleWebhookDeps {
   /** Optional — handler logs and skips when absent (used by integration tests). */
   enqueueRunIngest?: EnqueueRunIngest;
+  /** Called for newly active repos (install.created snapshot or repos.added). */
+  kickoffRepoIngest?: KickoffRepoIngest;
+  /** Called for repos that just went inactive. */
+  unregisterRepoIngest?: UnregisterRepoIngest;
 }
 
 function readInstallation(raw: unknown): GithubInstallation {
@@ -82,6 +88,18 @@ export async function handleWebhook(
     const repos = readRepoArray(payload.repositories);
     if (repos.length > 0) {
       await syncRepositories(db, { orgId: org.id, snapshot: repos });
+      if (action === "created" && deps.kickoffRepoIngest) {
+        const githubRepoIds = repos.map((r) => r.id);
+        const activeRows = await db
+          .select({ id: repositoriesTable.id, githubRepoId: repositoriesTable.githubRepoId })
+          .from(repositoriesTable)
+          .where(eq(repositoriesTable.orgId, org.id));
+        for (const row of activeRows) {
+          if (githubRepoIds.includes(row.githubRepoId)) {
+            await deps.kickoffRepoIngest({ orgId: org.id, repoId: row.id });
+          }
+        }
+      }
     }
     return { kind: "installation", action, orgId: org.id, repoCount: repos.length };
   }
@@ -101,6 +119,32 @@ export async function handleWebhook(
     const added = readRepoArray(payload.repositories_added);
     const removed = readRepoArray(payload.repositories_removed);
     await syncRepositories(db, { orgId: org.id, added, removed });
+
+    if (added.length > 0 && deps.kickoffRepoIngest) {
+      const addedIds = added.map((r) => r.id);
+      const rows = await db
+        .select({ id: repositoriesTable.id, githubRepoId: repositoriesTable.githubRepoId })
+        .from(repositoriesTable)
+        .where(eq(repositoriesTable.orgId, org.id));
+      for (const row of rows) {
+        if (addedIds.includes(row.githubRepoId)) {
+          await deps.kickoffRepoIngest({ orgId: org.id, repoId: row.id });
+        }
+      }
+    }
+    if (removed.length > 0 && deps.unregisterRepoIngest) {
+      const removedIds = removed.map((r) => r.id);
+      const rows = await db
+        .select({ id: repositoriesTable.id, githubRepoId: repositoriesTable.githubRepoId })
+        .from(repositoriesTable)
+        .where(eq(repositoriesTable.orgId, org.id));
+      for (const row of rows) {
+        if (removedIds.includes(row.githubRepoId)) {
+          await deps.unregisterRepoIngest(row.id);
+        }
+      }
+    }
+
     return {
       kind: "installation_repositories",
       orgId: org.id,

@@ -3,7 +3,7 @@ import { verifyWebhookSignature } from "@runspend/github";
 import { logger } from "@runspend/shared";
 import { type NextRequest, NextResponse } from "next/server";
 import { handleWebhook } from "@/lib/github/webhook-handlers";
-import { enqueueRunIngest } from "@/lib/queues";
+import { enqueueRunIngest, kickoffRepoIngest, unregisterIncrementalSchedule } from "@/lib/queues";
 
 export const runtime = "nodejs";
 // Webhook bodies must be read raw to verify the HMAC — disable any
@@ -41,7 +41,11 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const result = await handleWebhook(getDb(), event, payload, { enqueueRunIngest });
+    const result = await handleWebhook(getDb(), event, payload, {
+      enqueueRunIngest,
+      kickoffRepoIngest,
+      unregisterRepoIngest: unregisterIncrementalSchedule,
+    });
     logger.info({ deliveryId, event, result }, "github webhook: applied");
     return NextResponse.json({ ok: true, ...result });
   } catch (err) {
