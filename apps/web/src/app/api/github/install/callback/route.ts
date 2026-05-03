@@ -56,7 +56,12 @@ export async function GET(req: NextRequest) {
       "install callback: org connected",
     );
   } catch (err) {
-    logger.error({ err, userId, installationId }, "install callback: failed");
+    const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    logger.error(
+      { err, errorMessage: message, errorStack: stack, userId, installationId },
+      `install callback: failed — ${message}`,
+    );
     return bad("failed to complete installation", 500);
   }
 

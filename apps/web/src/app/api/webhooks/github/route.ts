@@ -49,7 +49,12 @@ export async function POST(req: NextRequest) {
     logger.info({ deliveryId, event, result }, "github webhook: applied");
     return NextResponse.json({ ok: true, ...result });
   } catch (err) {
-    logger.error({ err, deliveryId, event }, "github webhook: handler failed");
+    const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    logger.error(
+      { err, errorMessage: message, errorStack: stack, deliveryId, event },
+      `github webhook: handler failed (${event}) — ${message}`,
+    );
     return NextResponse.json({ error: "handler failed" }, { status: 500 });
   }
 }
