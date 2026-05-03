@@ -14,3 +14,10 @@ cmds = [
   "corepack prepare --activate",
   "pnpm install --frozen-lockfile",
 ]
+
+# Without an explicit build phase, Nixpacks auto-detects Turborepo and runs
+# `npx turbo run build` which also builds @runspend/web. That build fails on
+# the ingest service because no DATABASE_URL/AUTH_SECRET is present at build
+# time. Filter to just the worker (whose `build` script is a no-op).
+[phases.build]
+cmds = ["pnpm --filter @runspend/ingest build"]
