@@ -15,6 +15,20 @@
       "when": 1777733064189,
       "tag": "0001_lying_archangel",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777802523641,
+      "tag": "0002_woozy_ozymandias",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1777802541098,
+      "tag": "0003_seed_runner_pricing",
+      "breakpoints": true
     }
   ]
 }
