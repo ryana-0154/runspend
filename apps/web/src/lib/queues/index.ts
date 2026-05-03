@@ -58,7 +58,7 @@ function backfillQueue(): Queue<IngestBackfillPayload> {
  */
 export async function enqueueRunIngest(payload: IngestRunPayload): Promise<void> {
   await runQueue().add("ingest-run", payload, {
-    jobId: `run:${payload.githubRunId}`,
+    jobId: `run-${payload.githubRunId}`,
     removeOnComplete: 1000,
     removeOnFail: 5000,
     attempts: 5,
@@ -68,7 +68,7 @@ export async function enqueueRunIngest(payload: IngestRunPayload): Promise<void>
 
 export async function enqueueIncremental(payload: IngestIncrementalPayload): Promise<void> {
   await incrementalQueue().add("ingest-incremental", payload, {
-    jobId: `incremental:${payload.repoId}`,
+    jobId: `incremental-${payload.repoId}`,
     removeOnComplete: 100,
     removeOnFail: 500,
     attempts: 3,
@@ -78,7 +78,7 @@ export async function enqueueIncremental(payload: IngestIncrementalPayload): Pro
 
 export async function enqueueBackfill(payload: IngestBackfillPayload): Promise<void> {
   await backfillQueue().add("ingest-backfill", payload, {
-    jobId: `backfill:${payload.repoId}`,
+    jobId: `backfill-${payload.repoId}`,
     removeOnComplete: 100,
     removeOnFail: 500,
     attempts: 3,
@@ -97,7 +97,7 @@ export async function registerIncrementalSchedule(
   payload: IngestIncrementalPayload,
 ): Promise<void> {
   await incrementalQueue().upsertJobScheduler(
-    `incremental-sched:${payload.repoId}`,
+    `incremental-sched-${payload.repoId}`,
     { every: HOURLY_MS },
     {
       name: "ingest-incremental",
@@ -114,7 +114,7 @@ export async function registerIncrementalSchedule(
 
 /** Stop polling a repo (e.g. plan-limit deactivation, install removed). */
 export async function unregisterIncrementalSchedule(repoId: string): Promise<void> {
-  await incrementalQueue().removeJobScheduler(`incremental-sched:${repoId}`);
+  await incrementalQueue().removeJobScheduler(`incremental-sched-${repoId}`);
 }
 
 /**
