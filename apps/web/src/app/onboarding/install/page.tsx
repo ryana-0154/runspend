@@ -11,6 +11,21 @@ import {
 } from "@/lib/github/install-state";
 import { buildInstallUrl } from "@/lib/github/install-url";
 
+async function startInstall() {
+  "use server";
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+
+  const slug = process.env.GITHUB_APP_SLUG;
+  if (!slug) redirect("/onboarding/install");
+
+  const state = generateInstallState(session.user.id);
+  const cookieJar = await cookies();
+  cookieJar.set(INSTALL_STATE_COOKIE, state, installStateCookieOptions);
+
+  redirect(buildInstallUrl(slug, state));
+}
+
 export default async function InstallPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
@@ -40,12 +55,6 @@ export default async function InstallPage() {
       </main>
     );
   }
-
-  const state = generateInstallState(userId);
-  const cookieJar = await cookies();
-  cookieJar.set(INSTALL_STATE_COOKIE, state, installStateCookieOptions);
-
-  const installUrl = buildInstallUrl(slug, state);
 
   return (
     <main className="relative flex flex-1 items-center justify-center overflow-hidden px-6 py-12">
@@ -100,13 +109,15 @@ export default async function InstallPage() {
             <PermissionRow text="Source code, logs, secrets" allowed={false} />
           </ul>
 
-          <a
-            href={installUrl}
-            className="mt-7 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-foreground px-4 text-sm font-medium text-background shadow-sm transition-all hover:opacity-90 active:translate-y-px"
-          >
-            <GithubMark className="size-4" />
-            Install RunSpend on GitHub
-          </a>
+          <form action={startInstall} className="mt-7">
+            <button
+              type="submit"
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-foreground px-4 text-sm font-medium text-background shadow-sm transition-all hover:opacity-90 active:translate-y-px"
+            >
+              <GithubMark className="size-4" />
+              Install RunSpend on GitHub
+            </button>
+          </form>
 
           <p className="mt-4 text-center text-xs text-muted-foreground">
             You&apos;ll be redirected to GitHub to choose an organization.
