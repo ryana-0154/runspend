@@ -83,16 +83,26 @@ const workers = [runWorker, incrementalWorker, backfillWorker];
 
 for (const w of workers) {
   w.on("failed", (job, err) => {
+    const ctor = (err as { constructor?: { name?: string } })?.constructor?.name ?? typeof err;
+    const stringified = (() => {
+      try {
+        return JSON.stringify(err, Object.getOwnPropertyNames(err ?? {}));
+      } catch {
+        return String(err);
+      }
+    })();
+    const msg = err?.message || String(err) || "(empty error)";
     logger.error(
       {
         queue: w.name,
         jobId: job?.id,
         jobName: job?.name,
         data: job?.data,
-        err: err.message,
-        stack: err.stack,
+        errType: ctor,
+        errString: stringified,
+        stack: err?.stack,
       },
-      `job failed (${w.name}) — ${err.message}`,
+      `job failed (${w.name}) [${ctor}] — ${msg} — ${stringified.slice(0, 500)}`,
     );
   });
   w.on("error", (err) => {
