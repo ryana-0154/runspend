@@ -1,0 +1,16 @@
+# Nixpacks build plan for the `worker` (BullMQ ingest) Railway service.
+# Same install strategy as web; no Next.js build step needed. The worker uses
+# tsx at runtime, so devDeps must remain installed (Nixpacks default — we do
+# not `pnpm prune --prod`).
+
+providers = ["node"]
+
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+
+[phases.install]
+cmds = [
+  "corepack enable",
+  "corepack prepare --activate",
+  "pnpm install --frozen-lockfile",
+]
