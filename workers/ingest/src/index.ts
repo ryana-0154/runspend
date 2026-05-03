@@ -84,12 +84,19 @@ const workers = [runWorker, incrementalWorker, backfillWorker];
 for (const w of workers) {
   w.on("failed", (job, err) => {
     logger.error(
-      { queue: w.name, jobId: job?.id, err: err.message, stack: err.stack },
-      "job failed",
+      {
+        queue: w.name,
+        jobId: job?.id,
+        jobName: job?.name,
+        data: job?.data,
+        err: err.message,
+        stack: err.stack,
+      },
+      `job failed (${w.name}) — ${err.message}`,
     );
   });
   w.on("error", (err) => {
-    logger.error({ queue: w.name, err: err.message }, "worker error");
+    logger.error({ queue: w.name, err: err.message }, `worker error (${w.name}) — ${err.message}`);
   });
 }
 
