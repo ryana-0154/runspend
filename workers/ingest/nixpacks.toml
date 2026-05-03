@@ -14,3 +14,6 @@ cmds = [
   "corepack prepare --activate",
   "pnpm install --frozen-lockfile",
 ]
+
+[phases.build]
+cmds = []
