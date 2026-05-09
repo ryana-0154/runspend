@@ -5,6 +5,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { loadOrgIfOwner } from "@/lib/billing/authorize";
 import { ensureStripeCustomer } from "@/lib/billing/customer";
+import { billingEnabled } from "@/lib/billing/enabled";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,6 +21,9 @@ function parsePlan(value: unknown): PaidPlan | null {
  * Body: { orgId: string, plan: 'starter'|'growth'|'scale' }.
  */
 export async function POST(req: NextRequest) {
+  if (!billingEnabled()) {
+    return NextResponse.json({ error: "billing disabled" }, { status: 503 });
+  }
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 

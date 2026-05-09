@@ -24,6 +24,13 @@ const schema = z.object({
   STRIPE_PRICE_STARTER: z.string().optional(),
   STRIPE_PRICE_GROWTH: z.string().optional(),
   STRIPE_PRICE_SCALE: z.string().optional(),
+  // When false, Stripe routes 503 and ingest access gates pass for every org.
+  // Defaults true so prod deploys without env changes still enforce billing.
+  // Set BILLING_ENABLED=false on stg/dev to bypass Stripe entirely.
+  BILLING_ENABLED: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((v) => v === "true"),
 
   RESEND_API_KEY: z.string().optional(),
   SENTRY_DSN: z.string().optional(),

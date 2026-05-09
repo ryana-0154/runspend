@@ -2,6 +2,7 @@ import { constructWebhookEvent, handleStripeWebhook } from "@runspend/billing";
 import { getDb } from "@runspend/db";
 import { logger } from "@runspend/shared";
 import { type NextRequest, NextResponse } from "next/server";
+import { billingEnabled } from "@/lib/billing/enabled";
 
 export const runtime = "nodejs";
 // Stripe signature verification needs the raw body — no caching, no
@@ -9,6 +10,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+  if (!billingEnabled()) {
+    return NextResponse.json({ error: "billing disabled" }, { status: 503 });
+  }
   const signature = req.headers.get("stripe-signature");
   if (!signature) {
     return NextResponse.json({ error: "missing stripe-signature" }, { status: 400 });

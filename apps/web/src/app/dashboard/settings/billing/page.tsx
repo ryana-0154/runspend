@@ -4,6 +4,7 @@ import { and, count, desc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { billingEnabled } from "@/lib/billing/enabled";
 import { getUserOrgs } from "@/lib/db/user-orgs";
 import { ManageSubscriptionButton, UpgradeButton } from "./billing-actions";
 
@@ -30,6 +31,8 @@ export default async function BillingSettingsPage({
   const db = getDb();
   const orgs = await getUserOrgs(db, session.user.id);
   if (orgs.length === 0) redirect("/onboarding/install");
+
+  const billingOn = billingEnabled();
 
   // v1: bill per org. We render one card per org the user owns; member-only
   // orgs are read-only on this page.
@@ -69,6 +72,13 @@ export default async function BillingSettingsPage({
         </p>
       </div>
 
+      {!billingOn ? (
+        <p className="mt-6 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+          Billing is disabled in this environment (BILLING_ENABLED=false). Plans, checkout, and
+          enforcement are all bypassed — every org behaves as if it has an active paid plan.
+        </p>
+      ) : null}
+
       {status === "success" ? (
         <p className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
           Subscription updated. It can take a few seconds for the new plan to appear here.
@@ -102,53 +112,57 @@ export default async function BillingSettingsPage({
                     {accessSummary(access)}
                   </p>
                 </div>
-                {org.stripeCustomerId ? <ManageSubscriptionButton orgId={org.id} /> : null}
+                {billingOn && org.stripeCustomerId ? (
+                  <ManageSubscriptionButton orgId={org.id} />
+                ) : null}
               </div>
 
-              <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <PlanTile
-                  title="Starter"
-                  blurb={`Up to ${PLAN_REPO_LIMIT.starter} active repos.`}
-                  action={
-                    <UpgradeButton
-                      orgId={org.id}
-                      plan="starter"
-                      label={org.plan === "starter" ? "Current" : "Choose Starter"}
-                      variant="secondary"
-                      disabled={org.plan === "starter"}
-                    />
-                  }
-                  current={org.plan === "starter"}
-                />
-                <PlanTile
-                  title="Growth"
-                  blurb={`Up to ${PLAN_REPO_LIMIT.growth} active repos.`}
-                  action={
-                    <UpgradeButton
-                      orgId={org.id}
-                      plan="growth"
-                      label={org.plan === "growth" ? "Current" : "Choose Growth"}
-                      variant="primary"
-                      disabled={org.plan === "growth"}
-                    />
-                  }
-                  current={org.plan === "growth"}
-                />
-                <PlanTile
-                  title="Scale"
-                  blurb={`Up to ${PLAN_REPO_LIMIT.scale} active repos.`}
-                  action={
-                    <UpgradeButton
-                      orgId={org.id}
-                      plan="scale"
-                      label={org.plan === "scale" ? "Current" : "Choose Scale"}
-                      variant="secondary"
-                      disabled={org.plan === "scale"}
-                    />
-                  }
-                  current={org.plan === "scale"}
-                />
-              </div>
+              {billingOn ? (
+                <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <PlanTile
+                    title="Starter"
+                    blurb={`Up to ${PLAN_REPO_LIMIT.starter} active repos.`}
+                    action={
+                      <UpgradeButton
+                        orgId={org.id}
+                        plan="starter"
+                        label={org.plan === "starter" ? "Current" : "Choose Starter"}
+                        variant="secondary"
+                        disabled={org.plan === "starter"}
+                      />
+                    }
+                    current={org.plan === "starter"}
+                  />
+                  <PlanTile
+                    title="Growth"
+                    blurb={`Up to ${PLAN_REPO_LIMIT.growth} active repos.`}
+                    action={
+                      <UpgradeButton
+                        orgId={org.id}
+                        plan="growth"
+                        label={org.plan === "growth" ? "Current" : "Choose Growth"}
+                        variant="primary"
+                        disabled={org.plan === "growth"}
+                      />
+                    }
+                    current={org.plan === "growth"}
+                  />
+                  <PlanTile
+                    title="Scale"
+                    blurb={`Up to ${PLAN_REPO_LIMIT.scale} active repos.`}
+                    action={
+                      <UpgradeButton
+                        orgId={org.id}
+                        plan="scale"
+                        label={org.plan === "scale" ? "Current" : "Choose Scale"}
+                        variant="secondary"
+                        disabled={org.plan === "scale"}
+                      />
+                    }
+                    current={org.plan === "scale"}
+                  />
+                </div>
+              ) : null}
             </article>
           ))}
         </div>
