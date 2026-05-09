@@ -13,7 +13,9 @@ export const dynamic = "force-dynamic";
 const PAID_PLANS: ReadonlySet<PaidPlan> = new Set(["starter", "growth", "scale"]);
 
 function parsePlan(value: unknown): PaidPlan | null {
-  return typeof value === "string" && PAID_PLANS.has(value as PaidPlan) ? (value as PaidPlan) : null;
+  return typeof value === "string" && PAID_PLANS.has(value as PaidPlan)
+    ? (value as PaidPlan)
+    : null;
 }
 
 /**

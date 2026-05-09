@@ -105,8 +105,8 @@ export default async function BillingSettingsPage({
                 <div>
                   <h2 className="font-mono text-lg font-medium">{org.githubLogin}</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {planSummary(org.plan)} · {activeRepoCount} of {PLAN_REPO_LIMIT[org.plan]}{" "}
-                    repos active
+                    {planSummary(org.plan)} · {activeRepoCount} of {PLAN_REPO_LIMIT[org.plan]} repos
+                    active
                   </p>
                   <p className="mt-2 text-xs uppercase tracking-wide text-muted-foreground">
                     {accessSummary(access)}

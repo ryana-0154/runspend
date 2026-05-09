@@ -67,9 +67,7 @@ async function syncSubscription(
     return { kind: "ignored", type: "subscription", reason: `unknown price ${priceId}` };
   }
 
-  const currentPeriodEnd = sub.current_period_end
-    ? new Date(sub.current_period_end * 1000)
-    : null;
+  const currentPeriodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000) : null;
   const cancelAt = sub.cancel_at ? new Date(sub.cancel_at * 1000) : null;
 
   await db.transaction(async (tx) => {
@@ -120,10 +118,7 @@ async function cancelSubscription(
       .update(subscriptions)
       .set({ status: "canceled", updatedAt: new Date() })
       .where(eq(subscriptions.stripeSubscriptionId, sub.id));
-    await tx
-      .update(organizations)
-      .set({ plan: "cancelled" })
-      .where(eq(organizations.id, orgId));
+    await tx.update(organizations).set({ plan: "cancelled" }).where(eq(organizations.id, orgId));
   });
   return { kind: "subscription_canceled", orgId };
 }

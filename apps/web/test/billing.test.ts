@@ -5,13 +5,7 @@ import {
   PLAN_REPO_LIMIT,
   resolveAccess,
 } from "@runspend/billing";
-import {
-  createDb,
-  type Database,
-  organizations,
-  repositories,
-  subscriptions,
-} from "@runspend/db";
+import { createDb, type Database, organizations, repositories, subscriptions } from "@runspend/db";
 import { runMigrations } from "@runspend/db/migrate";
 import { eq } from "drizzle-orm";
 import postgres from "postgres";
@@ -250,7 +244,10 @@ describeIfDb("billing (DB-backed)", () => {
         metadata: { org_id: orgId },
         items: {
           data: [
-            { id: "si_1", price: { id: "price_unknown" } as Stripe.Price } as Stripe.SubscriptionItem,
+            {
+              id: "si_1",
+              price: { id: "price_unknown" } as Stripe.Price,
+            } as Stripe.SubscriptionItem,
           ],
         } as Stripe.ApiList<Stripe.SubscriptionItem>,
         current_period_end: Math.floor(Date.now() / 1000) + 86400,
@@ -264,7 +261,13 @@ describeIfDb("billing (DB-backed)", () => {
       const event = {
         id: "evt_y",
         type: "customer.subscription.created",
-        data: { object: { id: "sub_y", metadata: {}, items: { data: [] } } as unknown as Stripe.Subscription },
+        data: {
+          object: {
+            id: "sub_y",
+            metadata: {},
+            items: { data: [] },
+          } as unknown as Stripe.Subscription,
+        },
       } as Stripe.Event;
       await handleStripeWebhook(db, event);
       const [row] = await db
@@ -278,7 +281,13 @@ describeIfDb("billing (DB-backed)", () => {
       const event = {
         id: "evt_d",
         type: "customer.subscription.deleted",
-        data: { object: { id: "sub_d", metadata: {}, items: { data: [] } } as unknown as Stripe.Subscription },
+        data: {
+          object: {
+            id: "sub_d",
+            metadata: {},
+            items: { data: [] },
+          } as unknown as Stripe.Subscription,
+        },
       } as Stripe.Event;
       const result = await handleStripeWebhook(db, event);
       expect(result.kind).toBe("ignored");

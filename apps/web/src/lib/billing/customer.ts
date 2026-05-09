@@ -1,5 +1,5 @@
-import { type Database, organizations } from "@runspend/db";
 import { createCustomer } from "@runspend/billing";
+import { type Database, organizations } from "@runspend/db";
 import { eq } from "drizzle-orm";
 
 /**
