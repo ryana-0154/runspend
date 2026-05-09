@@ -1,7 +1,14 @@
 import { type Database, organizations, subscriptions } from "@runspend/db";
-import { getEnv } from "@runspend/shared";
 import { desc, eq } from "drizzle-orm";
 import { type AccessState, resolveAccess } from "./access";
+
+// Read directly from process.env rather than via getEnv() so the whole
+// app schema (DATABASE_URL etc.) doesn't need to be valid just to ask
+// whether billing is enabled. Default is "enabled" — explicit "false"
+// disables.
+function billingDisabled(): boolean {
+  return process.env.BILLING_ENABLED === "false";
+}
 
 /**
  * One-call access lookup for an org. Loads the org row + its most recent
@@ -15,7 +22,7 @@ import { type AccessState, resolveAccess } from "./access";
  * without hitting the DB so test/dev environments don't need Stripe.
  */
 export async function loadAccessState(db: Database, orgId: string): Promise<AccessState | null> {
-  if (!getEnv().BILLING_ENABLED) return { kind: "paid_active", plan: "trial" };
+  if (billingDisabled()) return { kind: "paid_active", plan: "trial" };
   const [org] = await db
     .select({ plan: organizations.plan, trialEndsAt: organizations.trialEndsAt })
     .from(organizations)

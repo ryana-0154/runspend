@@ -1,7 +1,11 @@
 import { type Database, organizations, repositories } from "@runspend/db";
-import { getEnv } from "@runspend/shared";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { type Plan, repoLimit } from "./plans";
+
+// See loader.ts for why this reads process.env directly.
+function billingDisabled(): boolean {
+  return process.env.BILLING_ENABLED === "false";
+}
 
 export interface EnforceResult {
   /** Active repos before enforcement ran. */
@@ -21,7 +25,7 @@ export interface EnforceResult {
  * Idempotent — running twice is a no-op once we're at or below the limit.
  */
 export async function enforceRepoLimit(db: Database, orgId: string): Promise<EnforceResult> {
-  if (!getEnv().BILLING_ENABLED) return { before: 0, after: 0, deactivated: [] };
+  if (billingDisabled()) return { before: 0, after: 0, deactivated: [] };
 
   const [orgRow] = await db
     .select({ plan: organizations.plan })
