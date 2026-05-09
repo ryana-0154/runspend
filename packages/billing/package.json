@@ -11,7 +11,14 @@
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@runspend/db": "workspace:*",
+    "@runspend/shared": "workspace:*",
+    "drizzle-orm": "^0.36.4",
+    "stripe": "^17.5.0"
+  },
   "devDependencies": {
+    "@types/node": "22.10.5",
     "typescript": "5.7.3"
   }
 }

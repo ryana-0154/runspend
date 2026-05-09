@@ -232,3 +232,39 @@ export type IngestJob = typeof ingestJobs.$inferSelect;
 export type NewIngestJob = typeof ingestJobs.$inferInsert;
 export type RunnerPricing = typeof runnerPricing.$inferSelect;
 export type NewRunnerPricing = typeof runnerPricing.$inferInsert;
+
+export const subscriptionStatusEnum = pgEnum("subscription_status", [
+  "trialing",
+  "active",
+  "past_due",
+  "canceled",
+  "incomplete",
+  "incomplete_expired",
+  "unpaid",
+  "paused",
+]);
+
+export const subscriptions = pgTable(
+  "subscriptions",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    stripeSubscriptionId: text("stripe_subscription_id").notNull(),
+    stripePriceId: text("stripe_price_id").notNull(),
+    plan: planEnum("plan").notNull(),
+    status: subscriptionStatusEnum("status").notNull(),
+    currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+    cancelAt: timestamp("cancel_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("subscriptions_stripe_subscription_id_idx").on(t.stripeSubscriptionId),
+    index("subscriptions_org_id_idx").on(t.orgId),
+  ],
+);
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type NewSubscription = typeof subscriptions.$inferInsert;
