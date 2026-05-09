@@ -18,7 +18,7 @@ const NAV = [
   { label: "Overview", href: "/dashboard", active: true },
   { label: "Workflows", href: "/dashboard" },
   { label: "Repositories", href: "/dashboard" },
-  { label: "Settings", href: "/dashboard" },
+  { label: "Settings", href: "/dashboard/settings/billing" },
 ];
 
 export default async function DashboardPage() {
