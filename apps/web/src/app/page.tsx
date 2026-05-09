@@ -1,16 +1,20 @@
 import Link from "next/link";
+import { auth } from "@/auth";
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth();
+  const isAuthed = Boolean(session?.user?.id);
+
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden bg-background">
       <BackgroundGradient />
 
-      <SiteHeader />
+      <SiteHeader isAuthed={isAuthed} />
 
       <main className="relative flex flex-1 flex-col">
-        <Hero />
+        <Hero isAuthed={isAuthed} />
         <FeatureGrid />
-        <CallToAction />
+        <CallToAction isAuthed={isAuthed} />
       </main>
 
       <SiteFooter />
@@ -37,7 +41,7 @@ function BackgroundGradient() {
   );
 }
 
-function SiteHeader() {
+function SiteHeader({ isAuthed }: { isAuthed: boolean }) {
   return (
     <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
       <Link href="/" className="flex items-center gap-2">
@@ -61,25 +65,37 @@ function SiteHeader() {
         </a>
       </nav>
       <div className="flex items-center gap-2">
-        <Link
-          href="/login"
-          className="hidden rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
-        >
-          Sign in
-        </Link>
-        <Link
-          href="/login"
-          className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3.5 py-1.5 text-sm font-medium text-background shadow-sm transition-all hover:opacity-90"
-        >
-          Get started
-          <ArrowRight className="size-3.5" />
-        </Link>
+        {isAuthed ? (
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3.5 py-1.5 text-sm font-medium text-background shadow-sm transition-all hover:opacity-90"
+          >
+            Open dashboard
+            <ArrowRight className="size-3.5" />
+          </Link>
+        ) : (
+          <>
+            <Link
+              href="/login"
+              className="hidden rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-3.5 py-1.5 text-sm font-medium text-background shadow-sm transition-all hover:opacity-90"
+            >
+              Get started
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </>
+        )}
       </div>
     </header>
   );
 }
 
-function Hero() {
+function Hero({ isAuthed }: { isAuthed: boolean }) {
   return (
     <section className="relative mx-auto flex w-full max-w-6xl flex-col items-center px-6 pb-20 pt-16 text-center sm:pt-24">
       <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/60 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur">
@@ -102,10 +118,10 @@ function Hero() {
 
       <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row">
         <Link
-          href="/login"
+          href={isAuthed ? "/dashboard" : "/login"}
           className="inline-flex h-11 items-center justify-center gap-1.5 rounded-lg bg-foreground px-5 text-sm font-medium text-background shadow-sm transition-all hover:opacity-90"
         >
-          Connect your GitHub org
+          {isAuthed ? "Open dashboard" : "Connect your GitHub org"}
           <ArrowRight className="size-4" />
         </Link>
         <a
@@ -290,7 +306,7 @@ function FeatureGrid() {
   );
 }
 
-function CallToAction() {
+function CallToAction({ isAuthed }: { isAuthed: boolean }) {
   return (
     <section id="how" className="mx-auto w-full max-w-6xl px-6 pb-24">
       <div className="relative overflow-hidden rounded-2xl border border-border bg-card px-8 py-14 text-center shadow-sm sm:px-14">
@@ -307,10 +323,10 @@ function CallToAction() {
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
-            href="/login"
+            href={isAuthed ? "/dashboard" : "/login"}
             className="inline-flex h-11 items-center justify-center gap-1.5 rounded-lg bg-foreground px-5 text-sm font-medium text-background shadow-sm transition-all hover:opacity-90"
           >
-            Start free
+            {isAuthed ? "Open dashboard" : "Start free"}
             <ArrowRight className="size-4" />
           </Link>
           <a

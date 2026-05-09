@@ -1,7 +1,11 @@
 import Link from "next/link";
-import { signIn } from "@/auth";
+import { redirect } from "next/navigation";
+import { auth, signIn } from "@/auth";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const session = await auth();
+  if (session?.user?.id) redirect("/dashboard");
+
   async function signInWithGithub() {
     "use server";
     await signIn("github", { redirectTo: "/dashboard" });
