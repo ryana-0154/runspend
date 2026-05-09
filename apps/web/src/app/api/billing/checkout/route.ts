@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { loadOrgIfOwner } from "@/lib/billing/authorize";
 import { ensureStripeCustomer } from "@/lib/billing/customer";
 import { billingEnabled } from "@/lib/billing/enabled";
+import { publicOrigin } from "@/lib/billing/origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
 
   const customerId = await ensureStripeCustomer(db, org, session.user.email);
 
-  const origin = req.nextUrl.origin;
+  const origin = publicOrigin(req);
   try {
     const url = await createCheckoutSession({
       orgId,

@@ -5,6 +5,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { loadOrgIfOwner } from "@/lib/billing/authorize";
 import { billingEnabled } from "@/lib/billing/enabled";
+import { publicOrigin } from "@/lib/billing/origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
   try {
     const url = await createPortalSession({
       customerId: org.stripeCustomerId,
-      returnUrl: `${req.nextUrl.origin}/dashboard/settings/billing`,
+      returnUrl: `${publicOrigin(req)}/dashboard/settings/billing`,
     });
     return NextResponse.json({ url });
   } catch (err) {
