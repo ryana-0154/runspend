@@ -1,5 +1,3 @@
-import { getEnv } from "@runspend/shared";
-
 export type Plan = "trial" | "starter" | "growth" | "scale" | "cancelled";
 
 export const PLAN_REPO_LIMIT: Record<Plan, number> = {
@@ -18,22 +16,24 @@ export function repoLimit(plan: Plan): number {
   return PLAN_REPO_LIMIT[plan];
 }
 
+// Read STRIPE_PRICE_* directly from process.env so tests that exercise
+// the webhook handler (which calls planForPriceId) don't need the full
+// app env schema (DATABASE_URL, AUTH_SECRET, etc.) to be valid.
+function priceEnv(plan: PaidPlan): string | undefined {
+  if (plan === "starter") return process.env.STRIPE_PRICE_STARTER;
+  if (plan === "growth") return process.env.STRIPE_PRICE_GROWTH;
+  return process.env.STRIPE_PRICE_SCALE;
+}
+
 export function priceIdForPlan(plan: PaidPlan): string {
-  const env = getEnv();
-  const id =
-    plan === "starter"
-      ? env.STRIPE_PRICE_STARTER
-      : plan === "growth"
-        ? env.STRIPE_PRICE_GROWTH
-        : env.STRIPE_PRICE_SCALE;
+  const id = priceEnv(plan);
   if (!id) throw new Error(`STRIPE_PRICE_${plan.toUpperCase()} is not configured`);
   return id;
 }
 
 export function planForPriceId(priceId: string): PaidPlan | null {
-  const env = getEnv();
-  if (priceId === env.STRIPE_PRICE_STARTER) return "starter";
-  if (priceId === env.STRIPE_PRICE_GROWTH) return "growth";
-  if (priceId === env.STRIPE_PRICE_SCALE) return "scale";
+  if (priceId === process.env.STRIPE_PRICE_STARTER) return "starter";
+  if (priceId === process.env.STRIPE_PRICE_GROWTH) return "growth";
+  if (priceId === process.env.STRIPE_PRICE_SCALE) return "scale";
   return null;
 }
