@@ -10,13 +10,7 @@ import {
   type WorkflowRunRow,
 } from "@/lib/db/dashboard-queries";
 import { getUserOrgs } from "@/lib/db/user-orgs";
-
-const NAV = [
-  { label: "Overview", href: "/dashboard" },
-  { label: "Workflows", href: "/dashboard", active: true },
-  { label: "Repositories", href: "/dashboard" },
-  { label: "Settings", href: "/dashboard" },
-];
+import { dashboardNav } from "@/lib/nav";
 
 const fmtUsd = (n: number): string =>
   `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -77,13 +71,13 @@ export default async function WorkflowDetailPage({ params }: { params: Promise<{
   const email = session.user.email ?? "unknown";
 
   return (
-    <DashboardShell email={email} nav={NAV}>
+    <DashboardShell email={email} nav={dashboardNav("workflows")}>
       <div>
         <Link
-          href="/dashboard"
+          href="/dashboard/workflows"
           className="text-xs font-medium text-muted-foreground hover:text-foreground"
         >
-          ← Back to overview
+          ← Back to workflows
         </Link>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">{detail.name}</h1>
         <p className="mt-1 font-mono text-sm text-muted-foreground">

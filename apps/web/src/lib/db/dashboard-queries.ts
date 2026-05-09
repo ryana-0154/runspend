@@ -275,3 +275,109 @@ export async function getWorkflowRuns(
     costUsd: Number(r.costUsd ?? 0),
   }));
 }
+
+export interface WorkflowListRow {
+  workflowId: string;
+  name: string;
+  path: string;
+  repoName: string;
+  costUsd: number;
+  runCount: number;
+  lastRunAt: Date | null;
+}
+
+/**
+ * All workflows that have ingested at least one run for the given orgs in
+ * the last `windowDays`. Sorted by spend (highest first). Drives the
+ * `/dashboard/workflows` index.
+ */
+export async function getAllWorkflows(
+  db: Database,
+  orgIds: string[],
+  windowDays = 30,
+): Promise<WorkflowListRow[]> {
+  if (orgIds.length === 0) return [];
+  const since = daysAgo(windowDays);
+
+  const rows = await db
+    .select({
+      workflowId: workflowRuns.workflowId,
+      name: workflows.name,
+      path: workflows.path,
+      repoName: repositories.name,
+      costUsd: sql<string>`coalesce(sum(${workflowRuns.estimatedCostUsd}), 0)`,
+      runCount: sql<number>`count(*)::int`,
+      lastRunAt: sql<Date | null>`max(${workflowRuns.startedAt})`,
+    })
+    .from(workflowRuns)
+    .innerJoin(workflows, eq(workflows.id, workflowRuns.workflowId))
+    .innerJoin(repositories, eq(repositories.id, workflowRuns.repoId))
+    .where(and(ORG_HAS_RUNS(orgIds), gte(workflowRuns.startedAt, since)))
+    .groupBy(workflowRuns.workflowId, workflows.name, workflows.path, repositories.name)
+    .orderBy(desc(sql`coalesce(sum(${workflowRuns.estimatedCostUsd}), 0)`));
+
+  return rows.map((r) => ({
+    workflowId: r.workflowId,
+    name: r.name,
+    path: r.path,
+    repoName: r.repoName,
+    costUsd: Number(r.costUsd),
+    runCount: r.runCount,
+    lastRunAt: r.lastRunAt,
+  }));
+}
+
+export interface RepositoryListRow {
+  repoId: string;
+  name: string;
+  isPrivate: boolean;
+  active: boolean;
+  costUsd: number;
+  runCount: number;
+  lastRunAt: Date | null;
+}
+
+/**
+ * Every repository the user's orgs own — including ones that haven't
+ * ingested any runs yet (left-joined). Sorted by spend desc, then name
+ * for the never-ran tail.
+ */
+export async function getAllRepositories(
+  db: Database,
+  orgIds: string[],
+  windowDays = 30,
+): Promise<RepositoryListRow[]> {
+  if (orgIds.length === 0) return [];
+  const since = daysAgo(windowDays);
+
+  const rows = await db
+    .select({
+      repoId: repositories.id,
+      name: repositories.name,
+      isPrivate: repositories.isPrivate,
+      active: repositories.active,
+      costUsd: sql<string>`coalesce(sum(case when ${workflowRuns.startedAt} >= ${since} then ${workflowRuns.estimatedCostUsd} end), 0)`,
+      runCount: sql<number>`count(${workflowRuns.id})::int`,
+      lastRunAt: sql<Date | null>`max(${workflowRuns.startedAt})`,
+    })
+    .from(repositories)
+    .leftJoin(workflowRuns, eq(workflowRuns.repoId, repositories.id))
+    .where(inArray(repositories.orgId, orgIds))
+    .groupBy(repositories.id, repositories.name, repositories.isPrivate, repositories.active)
+    .orderBy(
+      desc(
+        sql`coalesce(sum(case when ${workflowRuns.startedAt} >= ${since} then ${workflowRuns.estimatedCostUsd} end), 0)`,
+      ),
+      repositories.name,
+    );
+
+  return rows.map((r) => ({
+    repoId: r.repoId,
+    name: r.name,
+    isPrivate: r.isPrivate,
+    active: r.active,
+    costUsd: Number(r.costUsd),
+    runCount: r.runCount,
+    lastRunAt: r.lastRunAt,
+  }));
+}

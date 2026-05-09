@@ -13,13 +13,7 @@ import {
 } from "@/components/dashboard/sections";
 import { CardShell, ChartSkeleton, StatCardSkeleton } from "@/components/dashboard/stat-card";
 import { getUserOrgs } from "@/lib/db/user-orgs";
-
-const NAV = [
-  { label: "Overview", href: "/dashboard", active: true },
-  { label: "Workflows", href: "/dashboard" },
-  { label: "Repositories", href: "/dashboard" },
-  { label: "Settings", href: "/dashboard/settings/billing" },
-];
+import { dashboardNav } from "@/lib/nav";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -32,7 +26,7 @@ export default async function DashboardPage() {
   const orgIds = orgs.map((o) => o.org.id);
 
   return (
-    <DashboardShell email={email} nav={NAV}>
+    <DashboardShell email={email} nav={dashboardNav("overview")}>
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>

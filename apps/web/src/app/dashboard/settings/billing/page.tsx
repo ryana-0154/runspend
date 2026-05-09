@@ -6,14 +6,8 @@ import { auth } from "@/auth";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { billingEnabled } from "@/lib/billing/enabled";
 import { getUserOrgs } from "@/lib/db/user-orgs";
+import { dashboardNav } from "@/lib/nav";
 import { ManageSubscriptionButton, UpgradeButton } from "./billing-actions";
-
-const NAV = [
-  { label: "Overview", href: "/dashboard" },
-  { label: "Workflows", href: "/dashboard" },
-  { label: "Repositories", href: "/dashboard" },
-  { label: "Settings", href: "/dashboard/settings/billing", active: true },
-];
 
 interface Search {
   status?: string;
@@ -64,7 +58,7 @@ export default async function BillingSettingsPage({
   const email = session.user.email ?? "unknown";
 
   return (
-    <DashboardShell email={email} nav={NAV}>
+    <DashboardShell email={email} nav={dashboardNav("settings")}>
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Billing</h1>
         <p className="mt-1 text-sm text-muted-foreground">
