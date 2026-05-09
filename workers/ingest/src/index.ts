@@ -1,4 +1,5 @@
-import { getDb } from "@runspend/db";
+import { ingestAllowed, loadAccessState } from "@runspend/billing";
+import { type Database, getDb } from "@runspend/db";
 import {
   type GithubAppConfig,
   ingestIncremental,
@@ -17,6 +18,24 @@ import {
 import { Worker } from "bullmq";
 import { startHealthServer } from "./health";
 import { createRedis } from "./redis";
+
+/**
+ * Returns true if the org is allowed to ingest right now. Logs and short-
+ * circuits the job otherwise. Treats unknown orgs as blocked (the org row
+ * was probably deleted between enqueue and processing — nothing to do).
+ */
+async function gateOrAccess(db: Database, orgId: string, queue: string): Promise<boolean> {
+  const access = await loadAccessState(db, orgId);
+  if (!access) {
+    logger.warn({ queue, orgId }, "skipping job — org no longer exists");
+    return false;
+  }
+  if (!ingestAllowed(access)) {
+    logger.info({ queue, orgId, access: access.kind }, "skipping job — access blocked");
+    return false;
+  }
+  return true;
+}
 
 const redisUrl = process.env.REDIS_URL;
 if (!redisUrl) {
@@ -39,6 +58,7 @@ const concurrency = Number(process.env.INGEST_CONCURRENCY ?? 5);
 const runWorker = new Worker<IngestRunPayload>(
   INGEST_RUN_QUEUE,
   async (job) => {
+    if (!(await gateOrAccess(db, job.data.orgId, INGEST_RUN_QUEUE))) return;
     logger.info({ queue: INGEST_RUN_QUEUE, jobId: job.id, data: job.data }, "ingest run start");
     const result = await ingestSingleRun(githubConfig, db, job.data);
     logger.info({ queue: INGEST_RUN_QUEUE, jobId: job.id, ...result }, "ingest run done");
@@ -49,6 +69,7 @@ const runWorker = new Worker<IngestRunPayload>(
 const incrementalWorker = new Worker<IngestIncrementalPayload>(
   INGEST_INCREMENTAL_QUEUE,
   async (job) => {
+    if (!(await gateOrAccess(db, job.data.orgId, INGEST_INCREMENTAL_QUEUE))) return;
     logger.info(
       { queue: INGEST_INCREMENTAL_QUEUE, jobId: job.id, data: job.data },
       "ingest incremental start",
@@ -65,6 +86,7 @@ const incrementalWorker = new Worker<IngestIncrementalPayload>(
 const backfillWorker = new Worker<IngestBackfillPayload>(
   INGEST_BACKFILL_QUEUE,
   async (job) => {
+    if (!(await gateOrAccess(db, job.data.orgId, INGEST_BACKFILL_QUEUE))) return;
     logger.info(
       { queue: INGEST_BACKFILL_QUEUE, jobId: job.id, data: job.data },
       "ingest backfill start",

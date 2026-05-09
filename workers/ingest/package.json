@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@runspend/billing": "workspace:*",
     "@runspend/db": "workspace:*",
     "@runspend/github": "workspace:*",
     "@runspend/shared": "workspace:*",

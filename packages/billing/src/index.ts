@@ -2,6 +2,7 @@ export type { AccessInputs, AccessState } from "./access";
 export { ingestAllowed, resolveAccess } from "./access";
 export type { EnforceResult } from "./limits";
 export { enforceRepoLimit } from "./limits";
+export { loadAccessState } from "./loader";
 export type { PaidPlan, Plan } from "./plans";
 export { PLAN_REPO_LIMIT, planForPriceId, priceIdForPlan, repoLimit, TRIAL_DAYS } from "./plans";
 export type { CreateCheckoutInput, CreateCustomerInput } from "./stripe";

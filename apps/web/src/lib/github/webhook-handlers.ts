@@ -1,3 +1,4 @@
+import { enforceRepoLimit, ingestAllowed, loadAccessState } from "@runspend/billing";
 import { type Database, organizations, repositories as repositoriesTable } from "@runspend/db";
 import {
   type GithubInstallation,
@@ -88,6 +89,7 @@ export async function handleWebhook(
     const repos = readRepoArray(payload.repositories);
     if (repos.length > 0) {
       await syncRepositories(db, { orgId: org.id, snapshot: repos });
+      await enforceRepoLimit(db, org.id);
       if (action === "created" && deps.kickoffRepoIngest) {
         const githubRepoIds = repos.map((r) => r.id);
         const activeRows = await db
@@ -119,6 +121,7 @@ export async function handleWebhook(
     const added = readRepoArray(payload.repositories_added);
     const removed = readRepoArray(payload.repositories_removed);
     await syncRepositories(db, { orgId: org.id, added, removed });
+    if (added.length > 0) await enforceRepoLimit(db, org.id);
 
     if (added.length > 0 && deps.kickoffRepoIngest) {
       const addedIds = added.map((r) => r.id);
@@ -190,6 +193,14 @@ export async function handleWebhook(
     }
     if (!repoRow.active) {
       return { kind: "workflow_run", action, enqueued: false, reason: "inactive-repo" };
+    }
+
+    // Trial expired or subscription past_due → drop the run on the floor.
+    // Existing data stays intact; the dashboard becomes read-only and
+    // the user is prompted to upgrade.
+    const access = await loadAccessState(db, repoRow.orgId);
+    if (access && !ingestAllowed(access)) {
+      return { kind: "workflow_run", action, enqueued: false, reason: `access-${access.kind}` };
     }
 
     if (deps.enqueueRunIngest) {

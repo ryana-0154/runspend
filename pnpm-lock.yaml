@@ -202,6 +202,9 @@ importers:
 
   workers/ingest:
     dependencies:
+      '@runspend/billing':
+        specifier: workspace:*
+        version: link:../../packages/billing
       '@runspend/db':
         specifier: workspace:*
         version: link:../../packages/db

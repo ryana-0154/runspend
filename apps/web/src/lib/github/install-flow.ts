@@ -1,3 +1,4 @@
+import { enforceRepoLimit } from "@runspend/billing";
 import { type Database, type organizations, repositories as repositoriesTable } from "@runspend/db";
 import {
   fetchInstallation,
@@ -57,6 +58,11 @@ export async function completeInstall(
     ? hooks.listRepos(input.installationId)
     : listInstallationRepositories(appConfig, input.installationId));
   await syncRepositories(db, { orgId: org.id, snapshot: repos });
+
+  // Cap to plan limit (trial=5 by default). Deactivated repos won't be
+  // picked up by the kickoff loop below — they're skipped naturally by
+  // the active=true filter.
+  await enforceRepoLimit(db, org.id);
 
   const kickoff = hooks?.kickoffRepoIngest;
   if (kickoff && repos.length > 0) {
